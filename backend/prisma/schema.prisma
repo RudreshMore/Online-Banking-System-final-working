@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  mobileNumber String   @map("mobile_number") @db.VarChar(10)
+  password     String   @db.VarChar(255)
+  role         String   @default("ROLE_USER") @db.VarChar(255)
+  active       Boolean  @default(true)
+  account      Account?
+
+  @@map("users")
+}
+
+model Account {
+  id            BigInt  @id @default(autoincrement())
+  accountNumber String  @unique @map("account_number") @db.VarChar(255)
+  balance       Decimal @default(1000.00) @db.Decimal(15, 2)
+  userId        BigInt  @unique @map("user_id")
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id              BigInt   @id @default(autoincrement())
+  fromAccount     String?  @map("from_account") @db.VarChar(255)
+  toAccount       String?  @map("to_account") @db.VarChar(255)
+  amount          Decimal  @db.Decimal(15, 2)
+  type            String   @db.VarChar(255)
+  transactionDate DateTime @default(now()) @map("transaction_date")
+
+  @@map("transactions")
+}
