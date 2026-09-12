@@ -9,12 +9,13 @@ datasource db {
 
 model User {
   id           BigInt   @id @default(autoincrement())
-  name         String   @db.VarChar(255)
-  email        String   @unique @db.VarChar(255)
+  active       Boolean  @db.Bit(1)
+  email        String?  @unique(map: "UK6dotkott2kjsp8vw4d0m25fb7") @db.VarChar(255)
+  name         String?  @db.VarChar(255)
+  password     String?  @db.VarChar(255)
+  role         String?  @db.VarChar(255)
+  mobile       String?  @db.VarChar(255)
   mobileNumber String   @map("mobile_number") @db.VarChar(10)
-  password     String   @db.VarChar(255)
-  role         String   @default("ROLE_USER") @db.VarChar(255)
-  active       Boolean  @default(true)
   account      Account?
 
   @@map("users")
@@ -22,21 +23,31 @@ model User {
 
 model Account {
   id            BigInt  @id @default(autoincrement())
-  accountNumber String  @unique @map("account_number") @db.VarChar(255)
+  accountNumber String? @unique(map: "UK6kplolsdtr3slnvx97xsy2kc8") @map("account_number") @db.VarChar(255)
   balance       Decimal @default(1000.00) @db.Decimal(15, 2)
-  userId        BigInt  @unique @map("user_id")
-  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        BigInt? @unique(map: "UKe4w4av1wrhanry7t6mxt42nou") @map("user_id")
+  user          User?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKnjuop33mo69pd79ctplkck40n")
 
   @@map("accounts")
 }
 
 model Transaction {
-  id              BigInt   @id @default(autoincrement())
-  fromAccount     String?  @map("from_account") @db.VarChar(255)
-  toAccount       String?  @map("to_account") @db.VarChar(255)
-  amount          Decimal  @db.Decimal(15, 2)
-  type            String   @db.VarChar(255)
-  transactionDate DateTime @default(now()) @map("transaction_date")
+  id              BigInt    @id @default(autoincrement())
+  amount          Decimal   @db.Decimal(15, 2)
+  fromAccount     String?   @map("from_account") @db.VarChar(255)
+  toAccount       String?   @map("to_account") @db.VarChar(255)
+  transactionDate DateTime? @map("transaction_date") @db.DateTime(6)
+  type            String?   @db.VarChar(255)
+  account_number  String?   @db.VarChar(255)
+  timestamp       DateTime? @db.DateTime(6)
 
   @@map("transactions")
+}
+
+model transaction {
+  id             BigInt    @id @default(autoincrement())
+  account_number String?   @db.VarChar(255)
+  amount         Float?
+  timestamp      DateTime? @db.DateTime(6)
+  type           String?   @db.VarChar(255)
 }
