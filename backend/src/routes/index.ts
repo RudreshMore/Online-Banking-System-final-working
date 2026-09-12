@@ -2,6 +2,9 @@ import { Router, Request, Response } from "express";
 import { sendSuccess } from "../utils/response.js";
 
 import { authRoutes } from "../modules/auth/auth.routes.js";
+import { userRoutes } from "../modules/users/user.routes.js";
+import { accountRoutes } from "../modules/accounts/account.routes.js";
+import { transactionRoutes } from "../modules/transactions/transaction.routes.js";
 
 export const router = Router();
 
@@ -13,8 +16,14 @@ router.get("/health", (_req: Request, res: Response) => {
 // Authentication routes
 router.use("/auth", authRoutes);
 
-// Module routers will be mounted here in future phases:
-// router.use("/users", userRoutes);
-// router.use("/accounts", accountRoutes);
-// router.use("/transactions", transactionRoutes);
+// Users routes
+router.use("/users", userRoutes);
+
+// Accounts routes
+router.use("/accounts", accountRoutes);
+
+// Transactions routes
+router.use("/transactions", transactionRoutes);
+
+// Admin routes can be mounted under /admin as convenience alias if needed:
 // router.use("/admin", adminRoutes);
