@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SecureBank | Transfer Money</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transfer-container {
+            background: #ffffff;
+            width: 420px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+            animation: slideUp 0.8s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bank-logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .bank-logo h1 {
+            color: #2c5364;
+            font-weight: 600;
+        }
+
+        .bank-logo span {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2c5364;
+        }
+
+        .transfer-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #203a43, #2c5364);
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .transfer-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .success-msg {
+            color: #27ae60;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .links a {
+            color: #2c5364;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<div class="transfer-container">
+
+    <div class="bank-logo">
+        <h1>SecureBank</h1>
+        <span>Fast • Secure • Reliable Transfers</span>
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    <div th:if="${success}" class="success-msg" th:text="${success}"></div>
+
+    <!-- ERROR MESSAGE -->
+    <div th:if="${error}" class="error-msg" th:text="${error}"></div>
+
+    <form th:action="@{/transfer}" method="post">
+<input type="hidden"
+       th:name="${_csrf.parameterName}"
+       th:value="${_csrf.token}">
+
+        <div class="form-group">
+            <label>From Account</label>
+            <input type="text"
+       name="fromAccount"
+       th:value="${account != null ? account.accountNumber : ''}"
+       readonly>
+
+        </div>
+
+        <div class="form-group">
+            <label>To Account Number</label>
+            <input type="text"
+                   name="toAccount"
+                   placeholder="Enter receiver account number"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number"
+                   name="amount"
+                   placeholder="Enter amount"
+                   min="1"
+                   required>
+        </div>
+
+        <button type="submit" class="transfer-btn">
+            Transfer Money
+        </button>
+
+    </form>
+
+    <div class="links">
+        <a th:href="@{/dashboard}">⬅ Back to Dashboard</a>
+    </div>
+
+    <div class="footer">
+        © 2026 SecureBank <br>
+        Designed & Developed by <b>Rudresh Narayan More</b>
+    </div>
+
+</div>
+
+</body>
+</html>

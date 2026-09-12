@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Deposit</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card shadow col-md-6 mx-auto">
+        <div class="card-body">
+
+            <h4 class="mb-3">Admin Deposit</h4>
+
+            <form th:action="@{/admin/deposit}" method="post">
+
+                <div class="mb-3">
+                    <label>Account Number</label>
+                    <input type="text"
+                           class="form-control"
+                           name="accountNo"
+                           th:value="${accountNo}"
+                           readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label>Amount</label>
+                    <input type="number"
+                           class="form-control"
+                           name="amount"
+                           min="1"
+                           required>
+                </div>
+
+                <button class="btn btn-success w-100">
+                    Deposit
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Transactions | SecureBank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #203a43, #2c5364);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+        }
+
+        .card {
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .badge-credit {
+            background: #27ae60;
+        }
+
+        .badge-debit {
+            background: #e74c3c;
+        }
+
+        .table th {
+            background: #2c5364;
+            color: white;
+            font-weight: 500;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 🔹 NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">SecureBank</a>
+
+        <div class="ms-auto">
+            <a href="/dashboard" class="btn btn-light btn-sm me-2">Dashboard</a>
+
+            <!-- LOGOUT (POST) -->
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button class="btn btn-outline-light btn-sm">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<!-- 🔹 MAIN CONTENT -->
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Transaction History</h3>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            <!-- NO TRANSACTIONS -->
+            <div th:if="${#lists.isEmpty(transactions)}"
+                 class="alert alert-info text-center">
+                No transactions found.
+            </div>
+
+            <!-- TRANSACTIONS TABLE -->
+            <div th:if="${!#lists.isEmpty(transactions)}">
+                <table class="table table-hover align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>From Account</th>
+                            <th>To Account</th>
+                            <th>Amount (₹)</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr th:each="tx, stat : ${transactions}">
+                            <td th:text="${stat.count}"></td>
+
+                            <td>
+                                <span th:if="${tx.type == 'CREDIT'}"
+                                      class="badge badge-credit">
+                                    CREDIT
+                                </span>
+
+                                <span th:if="${tx.type == 'DEBIT'}"
+                                      class="badge badge-debit">
+                                    DEBIT
+                                </span>
+
+                                <span th:if="${tx.type == 'ADMIN_DEPOSIT'}"
+                                      class="badge bg-primary">
+                                    ADMIN
+                                </span>
+                            </td>
+
+                            <td th:text="${tx.fromAccount != null ? tx.fromAccount : '-'}"></td>
+                            <td th:text="${tx.toAccount != null ? tx.toAccount : '-'}"></td>
+
+                            <td class="fw-bold">
+                                ₹ <span th:text="${tx.amount}"></span>
+                            </td>
+
+                            <td th:text="${#temporals.format(tx.transactionDate, 'dd-MM-yyyy HH:mm')}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- 🔹 FOOTER -->
+<div class="footer">
+    © 2026 SecureBank<br>
+    Designed & Developed by <b>Rudresh Narayan More</b>
+</div>
+
+</body>
+</html>
