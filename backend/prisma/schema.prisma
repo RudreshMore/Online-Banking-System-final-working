@@ -8,25 +8,33 @@ datasource db {
 }
 
 model User {
-  id           BigInt   @id @default(autoincrement())
-  active       Boolean  @db.Bit(1)
-  email        String?  @unique(map: "UK6dotkott2kjsp8vw4d0m25fb7") @db.VarChar(255)
-  name         String?  @db.VarChar(255)
-  password     String?  @db.VarChar(255)
-  role         String?  @db.VarChar(255)
-  mobile       String?  @db.VarChar(255)
-  mobileNumber String   @map("mobile_number") @db.VarChar(10)
-  account      Account?
+  id              BigInt                 @id @default(autoincrement())
+  active          Boolean                @db.Bit(1)
+  email           String?                @unique(map: "UK6dotkott2kjsp8vw4d0m25fb7") @db.VarChar(255)
+  name            String?                @db.VarChar(255)
+  password        String?                @db.VarChar(255)
+  role            String?                @db.VarChar(255)
+  mobile          String?                @db.VarChar(255)
+  mobileNumber    String                 @map("mobile_number") @db.VarChar(10)
+  aadhaarNumber   String?                @map("aadhaar_number") @db.VarChar(12)
+  dob             String?                @db.VarChar(20)
+  photoUrl        String?                @map("photo_url") @db.Text
+  account         Account?
+  profileRequests ProfileUpdateRequest[]
 
   @@map("users")
 }
 
 model Account {
-  id            BigInt  @id @default(autoincrement())
-  accountNumber String? @unique(map: "UK6kplolsdtr3slnvx97xsy2kc8") @map("account_number") @db.VarChar(255)
-  balance       Decimal @default(1000.00) @db.Decimal(15, 2)
-  userId        BigInt? @unique(map: "UKe4w4av1wrhanry7t6mxt42nou") @map("user_id")
-  user          User?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKnjuop33mo69pd79ctplkck40n")
+  id            BigInt   @id @default(autoincrement())
+  accountNumber String?  @unique(map: "UK6kplolsdtr3slnvx97xsy2kc8") @map("account_number") @db.VarChar(255)
+  balance       Decimal  @default(1000.00) @db.Decimal(15, 2)
+  accountType   String   @default("SAVINGS") @map("account_type") @db.VarChar(20)
+  mpin          String?  @db.VarChar(255)
+  dailyLimit    Decimal  @default(50000.00) @map("daily_limit") @db.Decimal(15, 2)
+  monthlyLimit  Decimal  @default(200000.00) @map("monthly_limit") @db.Decimal(15, 2)
+  userId        BigInt?  @unique(map: "UKe4w4av1wrhanry7t6mxt42nou") @map("user_id")
+  user          User?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKnjuop33mo69pd79ctplkck40n")
 
   @@map("accounts")
 }
@@ -34,8 +42,15 @@ model Account {
 model Transaction {
   id              BigInt    @id @default(autoincrement())
   amount          Decimal   @db.Decimal(15, 2)
+  fee             Decimal   @default(0.00) @db.Decimal(15, 2)
+  tax             Decimal   @default(0.00) @db.Decimal(15, 2)
+  totalAmount     Decimal?  @map("total_amount") @db.Decimal(15, 2)
   fromAccount     String?   @map("from_account") @db.VarChar(255)
   toAccount       String?   @map("to_account") @db.VarChar(255)
+  senderName      String?   @map("sender_name") @db.VarChar(255)
+  receiverName    String?   @map("receiver_name") @db.VarChar(255)
+  referenceId     String?   @map("reference_id") @db.VarChar(100)
+  status          String    @default("SUCCESS") @db.VarChar(20)
   transactionDate DateTime? @map("transaction_date") @db.DateTime(6)
   type            String?   @db.VarChar(255)
   account_number  String?   @db.VarChar(255)
@@ -50,4 +65,19 @@ model transaction {
   amount         Float?
   timestamp      DateTime? @db.DateTime(6)
   type           String?   @db.VarChar(255)
+}
+
+model ProfileUpdateRequest {
+  id               BigInt    @id @default(autoincrement())
+  userId           BigInt    @map("user_id")
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requestedChanges String    @map("requested_changes") @db.Text
+  reason           String    @db.Text
+  proofDocument    String?   @map("proof_document") @db.Text
+  status           String    @default("PENDING") @db.VarChar(20)
+  adminComment     String?   @map("admin_comment") @db.Text
+  reviewedAt       DateTime? @map("reviewed_at") @db.DateTime(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.DateTime(6)
+
+  @@map("profile_update_requests")
 }

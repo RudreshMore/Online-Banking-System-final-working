@@ -16,6 +16,10 @@ export class AuthService {
     }
 
     const hashedPassword = await hashPassword(dto.password);
+    const hashedMpin = await hashPassword(dto.mpin || "1234");
+    const accountType = dto.accountType === "CURRENT" ? "CURRENT" : "SAVINGS";
+    const dailyLimit = accountType === "CURRENT" ? 500000.0 : 50000.0;
+    const monthlyLimit = accountType === "CURRENT" ? 2000000.0 : 200000.0;
 
     // Atomically create user and initial bank account with 1000 balance
     const result = await prisma.$transaction(async (tx) => {
@@ -27,6 +31,8 @@ export class AuthService {
           password: hashedPassword,
           role: "ROLE_USER",
           active: true,
+          aadhaarNumber: dto.aadhaarNumber || null,
+          dob: dto.dob || null,
         },
       });
 
@@ -35,6 +41,10 @@ export class AuthService {
           accountNumber: "AC" + Date.now(),
           balance: 1000.0,
           userId: user.id,
+          accountType,
+          mpin: hashedMpin,
+          dailyLimit,
+          monthlyLimit,
         },
       });
 
@@ -48,9 +58,13 @@ export class AuthService {
       mobileNumber: result.user.mobileNumber,
       role: result.user.role,
       active: result.user.active,
+      aadhaarNumber: result.user.aadhaarNumber,
+      dob: result.user.dob,
       account: {
         accountNumber: result.account.accountNumber,
         balance: Number(result.account.balance),
+        accountType: result.account.accountType,
+        dailyLimit: Number(result.account.dailyLimit),
       },
     };
   }
@@ -95,7 +109,12 @@ export class AuthService {
         role: user.role ?? "ROLE_USER",
         active: user.active,
         accountNumber: user.account?.accountNumber ?? null,
+        accountType: user.account?.accountType ?? "SAVINGS",
+        dailyLimit: user.account?.dailyLimit ? Number(user.account.dailyLimit) : 50000,
         balance: user.account?.balance ? Number(user.account.balance) : 0,
+        aadhaarNumber: user.aadhaarNumber,
+        dob: user.dob,
+        photoUrl: user.photoUrl,
         redirectUrl,
       },
     };
@@ -118,11 +137,17 @@ export class AuthService {
       mobileNumber: user.mobileNumber,
       role: user.role ?? "ROLE_USER",
       active: user.active,
+      aadhaarNumber: user.aadhaarNumber,
+      dob: user.dob,
+      photoUrl: user.photoUrl,
       account: user.account
         ? {
             id: Number(user.account.id),
             accountNumber: user.account.accountNumber,
             balance: Number(user.account.balance),
+            accountType: user.account.accountType,
+            dailyLimit: Number(user.account.dailyLimit),
+            monthlyLimit: Number(user.account.monthlyLimit),
           }
         : null,
     };

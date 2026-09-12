@@ -9,6 +9,10 @@ export const registerSchema = z.object({
       .trim()
       .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
     password: z.string().min(4, "Password must be at least 4 characters"),
+    accountType: z.enum(["SAVINGS", "CURRENT"]).optional().default("SAVINGS"),
+    mpin: z.string().regex(/^\d{4}$/, "MPIN must be 4 digits").optional().default("1234"),
+    aadhaarNumber: z.string().regex(/^\d{12}$/, "Aadhaar must be 12 digits").optional().or(z.literal("")),
+    dob: z.string().optional().or(z.literal("")),
   }),
 });
 

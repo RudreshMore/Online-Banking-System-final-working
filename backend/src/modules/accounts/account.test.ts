@@ -139,4 +139,63 @@ describe("Accounts Module", () => {
       expect(Number(tx!.amount)).toBe(750);
     });
   });
+
+  describe("POST /api/accounts/check-balance (MPIN Protected)", () => {
+    it("should reject balance check with wrong MPIN", async () => {
+      // Set test user MPIN to 1234
+      const bcrypt = await import("bcryptjs");
+      const hash = await bcrypt.default.hash("1234", 10);
+      await prisma.account.update({
+        where: { accountNumber: testAccountNumber },
+        data: { mpin: hash },
+      });
+
+      const res = await request(app)
+        .post("/api/accounts/check-balance")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({ mpin: "9999" });
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toContain("Incorrect MPIN");
+    });
+
+    it("should successfully return balance when correct 4-digit MPIN is entered", async () => {
+      const res = await request(app)
+        .post("/api/accounts/check-balance")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({ mpin: "1234" });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.accountNumber).toBe(testAccountNumber);
+      expect(res.body.data.balance).toBe(1750);
+      expect(res.body.data.accountType).toBeDefined();
+    });
+  });
+
+  describe("POST /api/accounts/change-mpin", () => {
+    it("should successfully update MPIN with valid current MPIN", async () => {
+      const res = await request(app)
+        .post("/api/accounts/change-mpin")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({
+          currentMpin: "1234",
+          newMpin: "5678",
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toContain("MPIN updated successfully");
+
+      // Verify new MPIN works
+      const verifyRes = await request(app)
+        .post("/api/accounts/check-balance")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({ mpin: "5678" });
+
+      expect(verifyRes.status).toBe(200);
+      expect(verifyRes.body.data.balance).toBe(1750);
+    });
+  });
 });
+

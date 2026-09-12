@@ -8,6 +8,7 @@ export const Transfer: React.FC = () => {
   const [account, setAccount] = useState<Account | null>(null);
   const [toAccount, setToAccount] = useState("");
   const [amount, setAmount] = useState<string>("");
+  const [mpin, setMpin] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingAccount, setIsFetchingAccount] = useState(true);
@@ -31,12 +32,20 @@ export const Transfer: React.FC = () => {
     fetchAccount();
   }, []);
 
+  // Settlement calculations
+  const parsedAmount = parseFloat(amount) || 0;
+  const isCurrent = account?.accountType === "CURRENT";
+  const fee = parsedAmount > 0 ? 0.5 : 0.0;
+  const tax = isCurrent && parsedAmount > 0 ? 0.09 : 0.0;
+  const totalDebit = Number((parsedAmount + fee + tax).toFixed(2));
+  const availableBalance = account ? Number(account.balance) : 0;
+  const isInsufficient = parsedAmount > 0 && totalDebit > availableBalance;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    if (parsedAmount <= 0) {
       setErrorMessage("Invalid transfer amount");
       return;
     }
@@ -46,8 +55,15 @@ export const Transfer: React.FC = () => {
       return;
     }
 
-    if (account && account.balance < parsedAmount) {
-      setErrorMessage("Insufficient balance");
+    if (isInsufficient) {
+      setErrorMessage(
+        `Insufficient balance: Transfer of ₹${parsedAmount.toFixed(2)} + ₹${fee.toFixed(2)} fee requires ₹${totalDebit.toFixed(2)}, but your available balance is ₹${availableBalance.toFixed(2)}`
+      );
+      return;
+    }
+
+    if (!/^\d{4}$/.test(mpin)) {
+      setErrorMessage("Please enter your 4-digit Security MPIN");
       return;
     }
 
@@ -57,6 +73,7 @@ export const Transfer: React.FC = () => {
       const res = await transactionService.transfer({
         toAccount: toAccount.trim(),
         amount: parsedAmount,
+        mpin,
       });
 
       if (res.success) {
@@ -79,14 +96,14 @@ export const Transfer: React.FC = () => {
     >
       <div
         className="bg-white p-4 p-md-5 rounded-4 shadow-lg w-100"
-        style={{ maxWidth: "450px" }}
+        style={{ maxWidth: "480px" }}
       >
         <div className="text-center mb-4">
           <h1 className="fw-bold" style={{ color: "#2c5364" }}>
             SecureBank
           </h1>
           <span className="text-muted" style={{ fontSize: "14px" }}>
-            Fast • Secure • Reliable Transfers
+            Fast • Secure • UPI-Grade Transfers
           </span>
         </div>
 
@@ -98,20 +115,20 @@ export const Transfer: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
-              From Account
-            </label>
+            <div className="d-flex justify-content-between align-items-center">
+              <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: "14px" }}>
+                From Account ({account?.accountType || "SAVINGS"})
+              </label>
+              <span className="badge bg-light text-secondary border">
+                Balance: ₹ {availableBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
             <input
               type="text"
               className="form-control py-2 bg-light"
               value={isFetchingAccount ? "Loading..." : account?.accountNumber || ""}
               readOnly
             />
-            {account && (
-              <div className="text-muted text-end mt-1" style={{ fontSize: "12px" }}>
-                Balance: ₹ {account.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </div>
-            )}
           </div>
 
           <div className="mb-3">
@@ -128,15 +145,15 @@ export const Transfer: React.FC = () => {
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-3">
             <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
-              Amount (₹)
+              Transfer Amount (₹)
             </label>
             <input
               type="number"
               className="form-control py-2"
-              placeholder="Enter amount"
-              min="1"
+              placeholder="Enter amount (e.g. 10)"
+              min="0.01"
               step="any"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -144,15 +161,78 @@ export const Transfer: React.FC = () => {
             />
           </div>
 
+          {/* SETTLEMENT BREAKDOWN */}
+          {parsedAmount > 0 && (
+            <div
+              className={`p-3 rounded-3 mb-3 ${
+                isInsufficient ? "bg-danger-subtle border border-danger" : "bg-light border"
+              }`}
+            >
+              <div className="d-flex justify-content-between small mb-1">
+                <span className="text-secondary">Transfer Amount:</span>
+                <span className="fw-semibold">₹ {parsedAmount.toFixed(2)}</span>
+              </div>
+              <div className="d-flex justify-content-between small mb-1">
+                <span className="text-secondary">Platform Charge:</span>
+                <span className="fw-semibold">₹ {fee.toFixed(2)}</span>
+              </div>
+              {tax > 0 && (
+                <div className="d-flex justify-content-between small mb-1">
+                  <span className="text-secondary">GST (18% on fee):</span>
+                  <span className="fw-semibold">₹ {tax.toFixed(2)}</span>
+                </div>
+              )}
+              <hr className="my-2" />
+              <div className="d-flex justify-content-between fw-bold">
+                <span>Total Debit Required:</span>
+                <span className={isInsufficient ? "text-danger" : "text-dark"}>
+                  ₹ {totalDebit.toFixed(2)}
+                </span>
+              </div>
+
+              {isInsufficient && (
+                <div className="text-danger small mt-2 fw-semibold">
+                  ⚠️ Insufficient Balance! You need ₹{totalDebit.toFixed(2)}, but you only have ₹{availableBalance.toFixed(2)}.
+                  {availableBalance >= 0.5 && (
+                    <div className="text-muted fw-normal mt-1">
+                      Tip: You can send up to <strong>₹{(availableBalance - fee - tax).toFixed(2)}</strong> to empty your account.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SECURITY MPIN INPUT */}
+          <div className="mb-4">
+            <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
+              Security MPIN (4 digits)
+            </label>
+            <input
+              type="password"
+              className="form-control py-2 text-center fs-4 letter-spacing-2"
+              placeholder="••••"
+              maxLength={4}
+              value={mpin}
+              onChange={(e) => setMpin(e.target.value.replace(/\D/g, ""))}
+              required
+            />
+            <small className="text-muted text-center d-block mt-1">
+              Enter your 4-digit security PIN to authorize debit.
+            </small>
+          </div>
+
           <button
             type="submit"
             className="btn btn-primary-gradient w-100 py-2 fw-semibold"
-            disabled={isLoading || isFetchingAccount}
+            disabled={isLoading || isFetchingAccount || isInsufficient || mpin.length !== 4}
           >
             {isLoading ? (
               <span className="spinner-border spinner-border-sm me-2" role="status"></span>
             ) : null}
-            {isLoading ? "Processing Transfer..." : "Transfer Money"}
+            {isLoading
+              ? "Processing Transfer..."
+              : `Pay ₹${totalDebit > 0 ? totalDebit.toFixed(2) : "0.00"}`}
           </button>
         </form>
 

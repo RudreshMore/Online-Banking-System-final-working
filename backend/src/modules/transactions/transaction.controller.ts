@@ -5,8 +5,8 @@ import { sendSuccess } from "../../utils/response.js";
 export class TransactionController {
   async transferMoney(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { toAccount, amount } = req.body;
-      const data = await transactionService.transferMoney(req.user!.id, toAccount, amount);
+      const { toAccount, amount, mpin } = req.body;
+      const data = await transactionService.transferMoney(req.user!.id, toAccount, amount, mpin);
       sendSuccess(res, data, data.message);
     } catch (error) {
       next(error);

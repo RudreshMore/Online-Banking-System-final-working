@@ -7,6 +7,10 @@ export const Register: React.FC = () => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState<"SAVINGS" | "CURRENT">("SAVINGS");
+  const [mpin, setMpin] = useState("1234");
+  const [aadhaarNumber, setAadhaarNumber] = useState("");
+  const [dob, setDob] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,6 +26,16 @@ export const Register: React.FC = () => {
       return;
     }
 
+    if (mpin && !/^\d{4}$/.test(mpin)) {
+      setErrorMessage("Security MPIN must be exactly 4 digits");
+      return;
+    }
+
+    if (aadhaarNumber && !/^\d{12}$/.test(aadhaarNumber)) {
+      setErrorMessage("Aadhaar Number must be exactly 12 digits");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -30,6 +44,10 @@ export const Register: React.FC = () => {
         mobileNumber,
         email,
         password,
+        accountType,
+        mpin,
+        aadhaarNumber: aadhaarNumber || undefined,
+        dob: dob || undefined,
       });
 
       if (response.success) {
@@ -55,7 +73,7 @@ export const Register: React.FC = () => {
     >
       <div
         className="bg-white p-4 p-md-5 rounded-4 shadow-lg w-100"
-        style={{ maxWidth: "440px" }}
+        style={{ maxWidth: "480px" }}
       >
         <div className="text-center mb-4">
           <h1 className="fw-bold" style={{ color: "#2c5364" }}>
@@ -75,7 +93,7 @@ export const Register: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
-              Full Name
+              Full Name *
             </label>
             <input
               type="text"
@@ -87,25 +105,41 @@ export const Register: React.FC = () => {
             />
           </div>
 
-          <div className="mb-3">
-            <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
-              Mobile Number
-            </label>
-            <input
-              type="text"
-              className="form-control py-2"
-              placeholder="Enter 10-digit mobile number"
-              pattern="[0-9]{10}"
-              maxLength={10}
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ""))}
-              required
-            />
+          <div className="row g-2 mb-3">
+            <div className="col-md-6">
+              <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
+                Mobile Number *
+              </label>
+              <input
+                type="text"
+                className="form-control py-2"
+                placeholder="10-digit mobile"
+                pattern="[0-9]{10}"
+                maxLength={10}
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ""))}
+                required
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
+                Security MPIN (4-digit) *
+              </label>
+              <input
+                type="password"
+                className="form-control py-2"
+                placeholder="e.g. 1234"
+                maxLength={4}
+                value={mpin}
+                onChange={(e) => setMpin(e.target.value.replace(/\D/g, ""))}
+                required
+              />
+            </div>
           </div>
 
           <div className="mb-3">
             <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
-              Email
+              Email Address *
             </label>
             <input
               type="email"
@@ -117,9 +151,9 @@ export const Register: React.FC = () => {
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-3">
             <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
-              Password
+              Password *
             </label>
             <input
               type="password"
@@ -129,6 +163,74 @@ export const Register: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+
+          {/* ACCOUNT TYPE SELECTION */}
+          <div className="mb-3 p-3 rounded-3" style={{ background: "#f8f9fa", border: "1px solid #e9ecef" }}>
+            <label className="form-label text-secondary fw-semibold mb-2" style={{ fontSize: "14px" }}>
+              Choose Account Type
+            </label>
+            <div className="d-flex gap-3">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="accountType"
+                  id="typeSavings"
+                  value="SAVINGS"
+                  checked={accountType === "SAVINGS"}
+                  onChange={() => setAccountType("SAVINGS")}
+                />
+                <label className="form-check-label fw-semibold" htmlFor="typeSavings">
+                  Savings A/C
+                  <div className="text-muted small fw-normal">₹50k/day limit • Flat ₹0.50 fee</div>
+                </label>
+              </div>
+
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="accountType"
+                  id="typeCurrent"
+                  value="CURRENT"
+                  checked={accountType === "CURRENT"}
+                  onChange={() => setAccountType("CURRENT")}
+                />
+                <label className="form-check-label fw-semibold" htmlFor="typeCurrent">
+                  Current A/C
+                  <div className="text-muted small fw-normal">₹5L/day limit • GST Tax applicable</div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* KYC DETAILS */}
+          <div className="row g-2 mb-4">
+            <div className="col-md-7">
+              <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
+                Aadhaar Number (Optional)
+              </label>
+              <input
+                type="text"
+                className="form-control py-2"
+                placeholder="12-digit Aadhaar"
+                maxLength={12}
+                value={aadhaarNumber}
+                onChange={(e) => setAadhaarNumber(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
+            <div className="col-md-5">
+              <label className="form-label text-secondary fw-semibold" style={{ fontSize: "14px" }}>
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                className="form-control py-2"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+              />
+            </div>
           </div>
 
           <button

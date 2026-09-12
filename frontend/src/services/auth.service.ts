@@ -11,6 +11,10 @@ export interface RegisterRequest {
   email: string;
   mobileNumber: string;
   password: string;
+  accountType?: "SAVINGS" | "CURRENT";
+  mpin?: string;
+  aadhaarNumber?: string;
+  dob?: string;
 }
 
 export interface LoginResponseData {

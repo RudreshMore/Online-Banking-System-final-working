@@ -4,6 +4,7 @@ export const transferSchema = z.object({
   body: z.object({
     toAccount: z.string().trim().min(1, "Recipient account number is required"),
     amount: z.number().positive("Amount must be greater than zero"),
+    mpin: z.string().regex(/^\d{4}$/, "MPIN must be 4 digits").optional(),
   }),
 });
 

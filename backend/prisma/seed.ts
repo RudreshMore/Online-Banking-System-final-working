@@ -28,6 +28,8 @@ export async function seedAdmin() {
   }
 
   // Check if admin has an associated bank account
+  const defaultMpinHash = await bcrypt.hash("1234", 10);
+
   const account = await prisma.account.findUnique({
     where: { userId: admin.id },
   });
@@ -38,12 +40,49 @@ export async function seedAdmin() {
         accountNumber: "AC" + Date.now(),
         balance: 1000.0,
         userId: admin.id,
+        accountType: "SAVINGS",
+        mpin: defaultMpinHash,
+        dailyLimit: 50000.0,
+        monthlyLimit: 200000.0,
       },
     });
-    console.log("[Seed] Created bank account for admin with ₹1,000 balance");
+    console.log("[Seed] Created bank account for admin with ₹1,000 balance and default MPIN");
   } else {
+    if (!account.mpin) {
+      await prisma.account.update({
+        where: { id: account.id },
+        data: { mpin: defaultMpinHash },
+      });
+      console.log("[Seed] Set default MPIN for admin account");
+    }
     console.log("[Seed] Admin bank account already exists:", account.accountNumber);
   }
+
+  // Ensure Bank Reserve Account exists for collecting fees and taxes
+  let bankReserve = await prisma.account.findUnique({
+    where: { accountNumber: "ACC-BANK-RESERVE-001" },
+  });
+
+  if (!bankReserve) {
+    bankReserve = await prisma.account.create({
+      data: {
+        accountNumber: "ACC-BANK-RESERVE-001",
+        balance: 0.0,
+        accountType: "BANK_VAULT",
+        dailyLimit: 999999999.0,
+        monthlyLimit: 999999999.0,
+      },
+    });
+    console.log("[Seed] Created Bank Reserve Treasury Account: ACC-BANK-RESERVE-001");
+  } else {
+    console.log("[Seed] Bank Reserve Account exists:", bankReserve.accountNumber);
+  }
+
+  // Ensure all existing accounts without MPIN get default MPIN 1234
+  await prisma.account.updateMany({
+    where: { mpin: null, accountNumber: { not: "ACC-BANK-RESERVE-001" } },
+    data: { mpin: defaultMpinHash },
+  });
 }
 
 async function main() {
@@ -61,3 +100,4 @@ if (process.argv[1]?.includes("seed")) {
       await prisma.$disconnect();
     });
 }
+

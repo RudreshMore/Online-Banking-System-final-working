@@ -4,13 +4,20 @@ import { ApiResponse, Transaction, User } from "../types/index.js";
 export interface TransferRequest {
   toAccount: string;
   amount: number;
+  mpin?: string;
 }
 
 export interface TransferResponseData {
   message: string;
+  referenceId?: string;
   fromAccount: string;
   toAccount: string;
+  senderName?: string;
+  receiverName?: string;
   amount: number;
+  fee?: number;
+  tax?: number;
+  totalDebited?: number;
   senderBalance: number;
 }
 

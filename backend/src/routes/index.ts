@@ -6,6 +6,9 @@ import { userRoutes } from "../modules/users/user.routes.js";
 import { accountRoutes } from "../modules/accounts/account.routes.js";
 import { transactionRoutes } from "../modules/transactions/transaction.routes.js";
 
+import { kycRoutes } from "../modules/kyc/kyc.routes.js";
+import { adminRoutes } from "../modules/admin/admin.routes.js";
+
 export const router = Router();
 
 // Health check endpoint
@@ -25,5 +28,9 @@ router.use("/accounts", accountRoutes);
 // Transactions routes
 router.use("/transactions", transactionRoutes);
 
-// Admin routes can be mounted under /admin as convenience alias if needed:
-// router.use("/admin", adminRoutes);
+// KYC & Profile update requests routes
+router.use("/kyc", kycRoutes);
+
+// Admin analytics and vault routes
+router.use("/admin", adminRoutes);
+
